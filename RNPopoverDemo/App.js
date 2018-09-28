@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Text, View } from 'react-native';
-import Popover from 'rn-popover';
+import { Popover } from 'rn-popover';
 
 export default class App extends Component {
 
