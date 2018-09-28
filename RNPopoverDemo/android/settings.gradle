@@ -1,0 +1,3 @@
+rootProject.name = 'RNPopoverDemo'
+
+include ':app'

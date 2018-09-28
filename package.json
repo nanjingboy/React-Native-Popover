@@ -1,0 +1,27 @@
+{
+  "name": "rn-popover",
+  "version": "0.1.0",
+  "description": "Popover component for react-native on both Android & iOS.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nanjingboy/React-Native-Popover.git"
+  },
+  "keywords": [
+    "react-native-component",
+    "react-component",
+    "react-native",
+    "ios",
+    "android",
+    "popover"
+  ],
+  "dependencies": {
+    "prop-types": "^15.6.2"
+  },
+  "author": "Tom.Huang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nanjingboy/React-Native-Popover/issues"
+  },
+  "homepage": "https://github.com/nanjingboy/React-Native-Popover"
+}
