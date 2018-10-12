@@ -1,8 +1,8 @@
-## 0.3.0 2018-11-12
+## 0.3.0 2018-10-12
 
 * Fix height calculate error.
 
-## 0.2.0 2018-11-12
+## 0.2.0 2018-10-12
 
 * Supports auto width & height.
 
