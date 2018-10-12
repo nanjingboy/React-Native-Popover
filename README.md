@@ -17,7 +17,7 @@ Popover component for react-native on both Android & iOS.
 ```shell
 $ cd RNPopoverDemo/
 $ yarn install
-$ react-native run-ios
+$ react-native run-ios # or react-native run-android
 ```
 
 # Setup
@@ -34,7 +34,7 @@ $ yarn add rn-popover
 
 * `style`
 * `arrowSize`
-* `popoverStyle`
+* `popoverBgColor`
 * `popoverOrientation`
 * `popoverMargin`
 * `popoverSize`
@@ -43,7 +43,7 @@ $ yarn add rn-popover
 * `popoverItemKeyExtractor`
 * `anchorView`
 
-#### [Props Details](Popover/Popover.js#L9-L28)
+#### [Props Details](Popover/Popover.js#L13-L32)
 
 # License
 
