@@ -20,7 +20,7 @@ export default class Popover extends React.PureComponent {
     popoverSize: PropTypes.shape({
       width: PropTypes.number.isRequired,
       height: PropTypes.number.isRequired,
-    }).isRequired,
+    }),
     popoverItems: PropTypes.array.isRequired,
     onRenderPopoverItem: PropTypes.func.isRequired,
     popoverItemKeyExtractor: PropTypes.func.isRequired,
@@ -35,7 +35,11 @@ export default class Popover extends React.PureComponent {
     popoverMargin: {
       left: 0,
       right: 0,
-    }
+    },
+    popoverSize: {
+      width: 0,
+      height: 0,
+    },
   }
 
   state = {
@@ -75,7 +79,8 @@ export default class Popover extends React.PureComponent {
     if (!isPopoverShowing) {
       return null;
     }
-    const { popoverSize, popoverStyle, arrowSize } = this.props;
+
+    const { popoverSize, popoverMargin, popoverStyle, arrowSize } = this.props;
     const { anchorLayout, windowSize } = this.state;
     let arrowType;
     let arrowTop;
@@ -93,11 +98,10 @@ export default class Popover extends React.PureComponent {
     }
     let popoverLeft;
     let { width: popoverWidth } = popoverSize;
-    if (popoverWidth >= windowSize.width) {
-      popoverLeft = 0;
-      popoverWidth = windowSize.width;
+    if (popoverWidth === 0 || popoverWidth >= windowSize.width) {
+      popoverLeft = popoverMargin.left;
+      popoverWidth = windowSize.width - popoverMargin.left - popoverMargin.right;
     } else {
-      const { popoverMargin } = this.props;
       const maxPopoverLeft = windowSize.width - popoverWidth - popoverMargin.right;
       popoverLeft = anchorLayout.x + (anchorLayout.width - popoverWidth) / 2;
       if (popoverLeft < popoverMargin.left) {
@@ -114,9 +118,10 @@ export default class Popover extends React.PureComponent {
       arrowLeft = maxArrowLeft;
     }
     const popoverFrameStyle = {
-      ...{ ...popoverSize, width: popoverWidth },
-      left: popoverLeft,
       top: popoverTop,
+      left: popoverLeft,
+      width: popoverWidth,
+      height: popoverSize.height > 0 ? popoverSize.height : null,
     };
     const arrowStyle = {
       ...styles[arrowType],
