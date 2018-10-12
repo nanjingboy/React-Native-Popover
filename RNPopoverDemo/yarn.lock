@@ -4434,9 +4434,9 @@ rimraf@~2.2.6:
   version "2.2.8"
   resolved "http://registry.npmjs.org/rimraf/-/rimraf-2.2.8.tgz#e439be2aaee327321952730f99a8929e4fc50582"
 
-rn-popover@0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/rn-popover/-/rn-popover-0.1.0.tgz#cd1ac12ef21d2cda9f7a87989c71717395eecee0"
+rn-popover@0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/rn-popover/-/rn-popover-0.3.0.tgz#5c39fd2fb085fd08f95473d0dbf261890a1c1f7f"
   dependencies:
     prop-types "^15.6.2"
 
