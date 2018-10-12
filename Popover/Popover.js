@@ -5,17 +5,22 @@ import {
 } from 'react-native';
 import styles from './styles';
 
+const ARROW_UP = 'upArrow';
+const ARROW_DOWN = 'downArrow';
+
 export default class Popover extends React.PureComponent {
   static propTypes = {
     style: PropTypes.object,
     arrowSize: PropTypes.number,
-    popoverStyle: PropTypes.object,
+    popoverBgColor: PropTypes.string,
     popoverOrientation: PropTypes.oneOf([
       'horizontal', 'vertical'
     ]),
     popoverMargin: PropTypes.shape({
-      left: PropTypes.number,
-      right: PropTypes.number,
+      top: PropTypes.number.isRequired,
+      right: PropTypes.number.isRequired,
+      bottom: PropTypes.number.isRequired,
+      left: PropTypes.number.isRequired,
     }),
     popoverSize: PropTypes.shape({
       width: PropTypes.number.isRequired,
@@ -30,11 +35,13 @@ export default class Popover extends React.PureComponent {
   static defaultProps = {
     style: null,
     arrowSize: 6,
-    popoverStyle: null,
+    popoverBgColor: 'white',
     popoverOrientation: 'horizontal',
     popoverMargin: {
-      left: 0,
+      top: 0,
       right: 0,
+      bottom: 0,
+      left: 0,
     },
     popoverSize: {
       width: 0,
@@ -74,43 +81,77 @@ export default class Popover extends React.PureComponent {
     });
   }
 
+  _parseArrowType() {
+    const { anchorLayout, windowSize } = this.state;
+    const { popoverSize, arrowSize, popoverMargin } = this.props;
+    const maxPopoverTop = anchorLayout.y
+                          + anchorLayout.height
+                          + arrowSize * 2
+                          + popoverSize.height
+                          + popoverMargin.bottom;
+    if (maxPopoverTop > windowSize.height) {
+      const maxWindowSpace = windowSize.height - anchorLayout.y - anchorLayout.height;
+      return anchorLayout.y > maxWindowSpace ? ARROW_DOWN : ARROW_UP;
+    }
+    return ARROW_UP;
+  }
+
+  _parsePopoverSize(arrowType) {
+    const { anchorLayout, windowSize } = this.state;
+    let { arrowSize, popoverSize: { width, height }, popoverMargin } = this.props;
+    let maxWidth = windowSize.width - popoverMargin.left - popoverMargin.right;
+    if (width <= 0 || width >= maxWidth) {
+      width = maxWidth;
+    }
+    let maxHeight;
+    if (arrowType === ARROW_DOWN) {
+      maxHeight = anchorLayout.y - popoverMargin.top - arrowSize * 2;
+    } else {
+      maxHeight = windowSize.height
+                  - anchorLayout.y
+                  - anchorLayout.height
+                  - arrowSize * 2
+                  - popoverMargin.bottom;
+    }
+    if (height >= maxHeight) {
+      height = maxHeight;
+    }
+    return {
+      width,
+      height,
+    }
+  }
+
   _renderPopover() {
     const { isPopoverShowing } = this.state;
     if (!isPopoverShowing) {
       return null;
     }
 
-    const { popoverSize, popoverMargin, popoverStyle, arrowSize } = this.props;
+    const arrowType = this._parseArrowType();
+    const popoverSize = this._parsePopoverSize(arrowType);
+    const { popoverMargin, arrowSize } = this.props;
     const { anchorLayout, windowSize } = this.state;
-    let arrowType;
+
     let arrowTop;
     let popoverTop;
-    const maxPopoverTop = anchorLayout.y + anchorLayout.height
-                          + popoverSize.height + arrowSize * 2;
-    if (maxPopoverTop > windowSize.height) {
-      arrowType = 'downArrow';
+    if (arrowType === ARROW_DOWN) {
       arrowTop = anchorLayout.y - arrowSize * 2;
       popoverTop = arrowTop - popoverSize.height;
     } else {
-      arrowType = 'upArrow';
       arrowTop = anchorLayout.y + anchorLayout.height;
       popoverTop = arrowTop + arrowSize * 2;
     }
+
     let popoverLeft;
-    let { width: popoverWidth } = popoverSize;
-    if (popoverWidth === 0 || popoverWidth >= windowSize.width) {
+    const maxPopoverLeft = windowSize.width - popoverSize.width - popoverMargin.right;
+    popoverLeft = anchorLayout.x + (anchorLayout.width - popoverSize.width) / 2;
+    if (popoverLeft < popoverMargin.left) {
       popoverLeft = popoverMargin.left;
-      popoverWidth = windowSize.width - popoverMargin.left - popoverMargin.right;
-    } else {
-      const maxPopoverLeft = windowSize.width - popoverWidth - popoverMargin.right;
-      popoverLeft = anchorLayout.x + (anchorLayout.width - popoverWidth) / 2;
-      if (popoverLeft < popoverMargin.left) {
-        popoverLeft = popoverMargin.left;
-      } else if (popoverLeft > maxPopoverLeft) {
-        popoverLeft = maxPopoverLeft;
-      }
+    } else if (popoverLeft > maxPopoverLeft) {
+      popoverLeft = maxPopoverLeft;
     }
-    const maxArrowLeft = popoverLeft + popoverWidth - arrowSize * 2;
+    const maxArrowLeft = popoverLeft + popoverSize.width - arrowSize * 2;
     let arrowLeft = anchorLayout.x + anchorLayout.width / 2 - arrowSize;
     if (arrowLeft < popoverLeft) {
       arrowLeft = popoverLeft;
@@ -120,8 +161,7 @@ export default class Popover extends React.PureComponent {
     const popoverFrameStyle = {
       top: popoverTop,
       left: popoverLeft,
-      width: popoverWidth,
-      height: popoverSize.height > 0 ? popoverSize.height : null,
+      ...{ ...popoverSize, height: popoverSize.height > 0 ? popoverSize.height : null },
     };
     const arrowStyle = {
       ...styles[arrowType],
@@ -129,12 +169,12 @@ export default class Popover extends React.PureComponent {
       left: arrowLeft,
       top: arrowTop,
     };
-    if (popoverStyle !== null) {
-      if (arrowType === "downArrow") {
-        arrowStyle.borderTopColor = popoverStyle.backgroundColor || 'white';
-      } else {
-        arrowStyle.borderBottomColor = popoverStyle.backgroundColor || 'white';
-      }
+
+    const { popoverBgColor } = this.props;
+    if (arrowType === ARROW_DOWN) {
+      arrowStyle.borderTopColor = popoverBgColor;
+    } else {
+      arrowStyle.borderBottomColor = popoverBgColor;
     }
     const { popoverItems, popoverItemKeyExtractor, onRenderPopoverItem, popoverOrientation } = this.props;
     return (
@@ -151,7 +191,7 @@ export default class Popover extends React.PureComponent {
           <View />
         </TouchableOpacity>
         <FlatList
-          style={[styles.popover, popoverStyle, popoverFrameStyle]}
+          style={[styles.popover, popoverFrameStyle]}
           horizontal={popoverOrientation === 'horizontal'}
           data={popoverItems}
           renderItem={({ item }) => onRenderPopoverItem(item, this._hidePopover)}
