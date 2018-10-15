@@ -1,3 +1,7 @@
+## 0.3.1 2018-10-15
+
+* Fix windows size error on android
+
 ## 0.3.0 2018-10-12
 
 * Fix height calculate error.
