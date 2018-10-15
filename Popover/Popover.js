@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
-  View, FlatList, Modal, Dimensions, TouchableOpacity,
+  View, FlatList, Modal, Platform, Dimensions, StatusBar, TouchableOpacity,
 } from 'react-native';
 import styles from './styles';
 
@@ -56,8 +56,12 @@ export default class Popover extends React.PureComponent {
   }
 
   componentWillMount() {
+    const { width, height } = Dimensions.get('window');
     this.setState({
-      windowSize: Dimensions.get('window'),
+      windowSize: {
+        width,
+        height: Platform.OS === 'android' ? height - StatusBar.currentHeight : height,
+      }
     });
   }
 
