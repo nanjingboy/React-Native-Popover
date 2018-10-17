@@ -14,7 +14,7 @@ export default class Popover extends React.PureComponent {
     arrowSize: PropTypes.number,
     popoverBgColor: PropTypes.string,
     popoverOrientation: PropTypes.oneOf([
-      'horizontal', 'vertical'
+      'horizontal', 'vertical',
     ]),
     popoverMargin: PropTypes.shape({
       top: PropTypes.number.isRequired,
@@ -53,6 +53,7 @@ export default class Popover extends React.PureComponent {
     super(...arguments);
     this.state = {
       isPopoverShowing: false,
+      popoverLayout: null,
       anchorLayout: null,
       windowSize: this.getWindowSize(),
     };
@@ -63,7 +64,7 @@ export default class Popover extends React.PureComponent {
     return {
       width,
       height: Platform.OS === 'android' ? height - StatusBar.currentHeight : height,
-    }
+    };
   }
 
   _onAnchorLayout = () => {
@@ -71,12 +72,21 @@ export default class Popover extends React.PureComponent {
 
   _showPopover = () => {
     this.anchorViewRef.measureInWindow((x, y, width, height) => {
-      this.setState({
-        isPopoverShowing: true,
-        anchorLayout: {
-          x, y, width, height,
-        },
-      });
+      if (this._isAnchorLayoutChanged(x, y, width, height)) {
+        this.setState({
+          isPopoverShowing: true,
+          anchorLayout: {
+            x, y, width, height,
+          },
+          popoverLayout: this._parsePopoverLayout({
+            x, y, width, height,
+          }),
+        });
+      } else {
+        this.setState({
+          isPopoverShowing: true,
+        });
+      }
     });
   }
 
@@ -86,26 +96,35 @@ export default class Popover extends React.PureComponent {
     });
   }
 
-  _parseArrowType() {
-    const { anchorLayout, windowSize } = this.state;
+  _isAnchorLayoutChanged(x, y, width, height) {
+    const { anchorLayout } = this.state;
+    if (anchorLayout === null) {
+      return true;
+    }
+    const {
+      x: currentX, y: currentY, width: currentWidth, height: currentHeight,
+    } = anchorLayout;
+    return currentX !== x || currentY !== y || currentWidth !== width || currentHeight !== height;
+  }
+
+  _parseArrowType(anchorLayout) {
+    const { windowSize } = this.state;
     const { popoverSize, arrowSize, popoverMargin } = this.props;
-    const maxPopoverTop = anchorLayout.y
-                          + anchorLayout.height
-                          + arrowSize * 2
-                          + popoverSize.height
-                          + popoverMargin.bottom;
+    const anchorBottom = anchorLayout.y + anchorLayout.height;
+    const maxPopoverTop = anchorBottom + arrowSize * 2 + popoverSize.height + popoverMargin.bottom;
     if (maxPopoverTop > windowSize.height) {
-      const maxWindowSpace = windowSize.height - anchorLayout.y - anchorLayout.height;
+      const maxWindowSpace = windowSize.height - anchorBottom;
       return anchorLayout.y > maxWindowSpace ? ARROW_DOWN : ARROW_UP;
     }
     return ARROW_UP;
   }
 
-  _parsePopoverSize(arrowType) {
-    const { anchorLayout, windowSize } = this.state;
-    let { arrowSize, popoverSize: { width, height }, popoverMargin } = this.props;
-    let maxWidth = windowSize.width - popoverMargin.left - popoverMargin.right;
-    if (width <= 0 || width >= maxWidth) {
+  _parsePopoverSize(arrowType, anchorLayout) {
+    const { windowSize } = this.state;
+    const { arrowSize, popoverSize, popoverMargin } = this.props;
+    const maxWidth = windowSize.width - popoverMargin.left - popoverMargin.right;
+    let { width, height } = popoverSize;
+    if (width <= 0 || width > maxWidth) {
       width = maxWidth;
     }
     let maxHeight;
@@ -124,20 +143,14 @@ export default class Popover extends React.PureComponent {
     return {
       width,
       height,
-    }
+    };
   }
 
-  _renderPopover() {
-    const { isPopoverShowing } = this.state;
-    if (!isPopoverShowing) {
-      return null;
-    }
-
-    const arrowType = this._parseArrowType();
-    const popoverSize = this._parsePopoverSize(arrowType);
+  _parsePopoverLayout(anchorLayout) {
+    const arrowType = this._parseArrowType(anchorLayout);
+    const popoverSize = this._parsePopoverSize(arrowType, anchorLayout);
+    const { windowSize } = this.state;
     const { popoverMargin, arrowSize } = this.props;
-    const { anchorLayout, windowSize } = this.state;
-
     let arrowTop;
     let popoverTop;
     if (arrowType === ARROW_DOWN) {
@@ -148,21 +161,43 @@ export default class Popover extends React.PureComponent {
       popoverTop = arrowTop + arrowSize * 2;
     }
 
-    let popoverLeft;
+    let popoverLeft = anchorLayout.x + (anchorLayout.width - popoverSize.width) / 2;
     const maxPopoverLeft = windowSize.width - popoverSize.width - popoverMargin.right;
-    popoverLeft = anchorLayout.x + (anchorLayout.width - popoverSize.width) / 2;
     if (popoverLeft < popoverMargin.left) {
       popoverLeft = popoverMargin.left;
     } else if (popoverLeft > maxPopoverLeft) {
       popoverLeft = maxPopoverLeft;
     }
-    const maxArrowLeft = popoverLeft + popoverSize.width - arrowSize * 2;
     let arrowLeft = anchorLayout.x + anchorLayout.width / 2 - arrowSize;
+    const maxArrowLeft = popoverLeft + popoverSize.width - arrowSize * 2;
     if (arrowLeft < popoverLeft) {
       arrowLeft = popoverLeft;
     } else if (arrowLeft > maxArrowLeft) {
       arrowLeft = maxArrowLeft;
     }
+    return {
+      arrowType,
+      arrowTop,
+      arrowLeft,
+      popoverTop,
+      popoverLeft,
+      popoverSize,
+    };
+  }
+
+  _renderPopover() {
+    const { isPopoverShowing } = this.state;
+    if (!isPopoverShowing) {
+      return null;
+    }
+
+    const { arrowSize } = this.props;
+    const {
+      popoverLayout: {
+        arrowType, arrowTop, arrowLeft, popoverLeft, popoverTop, popoverSize,
+      },
+    } = this.state;
+
     const popoverFrameStyle = {
       top: popoverTop,
       left: popoverLeft,
@@ -181,7 +216,9 @@ export default class Popover extends React.PureComponent {
     } else {
       arrowStyle.borderBottomColor = popoverBgColor;
     }
-    const { popoverItems, popoverItemKeyExtractor, onRenderPopoverItem, popoverOrientation } = this.props;
+    const {
+      popoverItems, popoverItemKeyExtractor, onRenderPopoverItem, popoverOrientation,
+    } = this.props;
     return (
       <Modal
         transparent
