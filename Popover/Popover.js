@@ -49,20 +49,21 @@ export default class Popover extends React.PureComponent {
     },
   }
 
-  state = {
-    isPopoverShowing: false,
-    anchorLayout: null,
-    windowSize: null,
+  constructor() {
+    super(...arguments);
+    this.state = {
+      isPopoverShowing: false,
+      anchorLayout: null,
+      windowSize: this.getWindowSize(),
+    };
   }
 
-  componentWillMount() {
+  getWindowSize() {
     const { width, height } = Dimensions.get('window');
-    this.setState({
-      windowSize: {
-        width,
-        height: Platform.OS === 'android' ? height - StatusBar.currentHeight : height,
-      }
-    });
+    return {
+      width,
+      height: Platform.OS === 'android' ? height - StatusBar.currentHeight : height,
+    }
   }
 
   _onAnchorLayout = () => {
