@@ -1,3 +1,7 @@
+## 0.3.5 2018-10-17
+
+* Force calculate popoverLayout when popoverSize or popoverMargin changed
+
 ## 0.3.3 2018-10-17
 
 * Reduce unnecessary calculate to improve performance

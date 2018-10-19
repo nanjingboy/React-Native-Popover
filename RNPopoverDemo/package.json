@@ -9,7 +9,7 @@
   "dependencies": {
     "react": "16.5.0",
     "react-native": "0.57.1",
-    "rn-popover": "0.3.3"
+    "rn-popover": "0.3.5"
   },
   "devDependencies": {
     "@babel/core": "^7.1.0",

@@ -1,6 +1,6 @@
 {
   "name": "rn-popover",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "description": "Popover component for react-native on both Android & iOS.",
   "main": "index.js",
   "repository": {
