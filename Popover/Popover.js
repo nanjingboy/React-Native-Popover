@@ -55,8 +55,17 @@ export default class Popover extends React.PureComponent {
       isPopoverShowing: false,
       popoverLayout: null,
       anchorLayout: null,
+      isForceCalculate: true,
       windowSize: this.getWindowSize(),
     };
+  }
+
+  componentWillReceiveProps({ popoverSize, popoverMargin }) {
+    if (this._isPopoverSizeChanged(popoverSize) || this._isPopoverMarginChanged(popoverMargin)) {
+      this.setState({
+        isForceCalculate: true,
+      });
+    }
   }
 
   getWindowSize() {
@@ -72,8 +81,10 @@ export default class Popover extends React.PureComponent {
 
   _showPopover = () => {
     this.anchorViewRef.measureInWindow((x, y, width, height) => {
-      if (this._isAnchorLayoutChanged(x, y, width, height)) {
+      const { isForceCalculate } = this.state;
+      if (isForceCalculate || this._isAnchorLayoutChanged(x, y, width, height)) {
         this.setState({
+          isForceCalculate: false,
           isPopoverShowing: true,
           anchorLayout: {
             x, y, width, height,
@@ -94,6 +105,20 @@ export default class Popover extends React.PureComponent {
     this.setState({
       isPopoverShowing: false,
     });
+  }
+
+  _isPopoverSizeChanged({ width, height }) {
+    const { popoverSize: { width: currentWidth, height: currentHeight } } = this.props;
+    return currentWidth !== width || currentHeight !== height;
+  }
+
+  _isPopoverMarginChanged({ top, right, bottom, left }) {
+    const {
+      popoverMargin: {
+        top: currentTop, right: currentRight, bottom: currentBottom, left: currentLeft,
+      },
+    } = this.props;
+    return currentTop !== top || currentRight !== right || currentBottom !== bottom || currentLeft !== left;
   }
 
   _isAnchorLayoutChanged(x, y, width, height) {
